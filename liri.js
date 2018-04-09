@@ -1,4 +1,5 @@
 require("dotenv").config();
+var fs = require("fs");
 var keys = require("./key.js");
 var Spotify = require('node-spotify-api');
 var Twitter = require('twitter');
@@ -16,6 +17,19 @@ for (var i = 3; i < nodeArgs.length; i++) {
         title += nodeArgs[i];
     }
 }
+if(process.argv[2] == "do-what-it-says"){
+fs.readFile("random.txt", "utf8", function(error, data) {
+    if (error) {
+      return console.log(error);
+    }
+    var dataArr = data.split(",");
+    command = dataArr[0];
+    title = dataArr[1];
+    homework();
+  });
+} else {
+    homework();
+}
 function tweetGrab(){
     var params = {
         q: 'throwawayalias2',
@@ -32,6 +46,9 @@ function tweetGrab(){
      });
 }
 function songGrab(){
+    if(title == false){
+        title = "The sign Ace of Base"
+    }
     spotify.search({ type: 'track', query: title, limit: 1}, function(err, data) {
         if (err) {
           return console.log('Error occurred: ' + err);
@@ -40,10 +57,6 @@ function songGrab(){
        for(i = 0; i < data.tracks.items[0].artists.length; i++){
           artists += data.tracks.items[0].artists[i].name + ", ";
        }
-    //   console.log(artists);
-    //   console.log(data.tracks.items[0].name);
-    //   console.log(data.tracks.items[0].external_urls.spotify);
-    //   console.log(data.tracks.items[0].album.name);
     console.log(`
        Artist(s): ${artists}
        Title: ${data.tracks.items[0].name}
@@ -81,14 +94,16 @@ function movieGrab() {
         }
     });
 }
-if (process.argv[2] === "my-tweets") {
+function homework(){
+if (command === "my-tweets") {
     tweetGrab();
-} else if (process.argv[2] === "spotify-this-song") {
+} else if (command === "spotify-this-song") {
     songGrab();
-} else if (process.argv[2] === "movie-this") {
+} else if (command === "movie-this") {
     movieGrab();
-} else if (process.argv[2] === "do-what-it-says") {
-    console.log("do what it says");
+} else if(command === "do-what-it-says"){
+
 } else {
     console.log("Empty/Unknown command.")
+}
 }
