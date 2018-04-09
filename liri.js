@@ -3,29 +3,56 @@ var keys = require("./key.js");
 var Spotify = require('node-spotify-api');
 var Twitter = require('twitter');
 var request = require("request");
+var spotify = new Spotify(keys.spotify);
+var client = new Twitter(keys.twitter);
 var command = process.argv[2];
 var nodeArgs = process.argv;
 var title = "";
 for (var i = 3; i < nodeArgs.length; i++) {
-
     if (i > 3 && i < nodeArgs.length) {
-
         title = title + "+" + nodeArgs[i];
-
     }
-
     else {
-
         title += nodeArgs[i];
-
     }
 }
-
-if (process.argv[2] === "my-tweets") {
-    console.log("My Tweets");
-} else if (process.argv[2] === "spotify-this-song") {
-    console.log(title);
-} else if (process.argv[2] === "movie-this") {
+function tweetGrab(){
+    var params = {
+        q: 'throwawayalias2',
+        count: 20,
+      }
+    client.get('search/tweets', params, function(error, data, response) {
+        
+        for(i = 0; i < data.statuses.length; i++){
+            console.log(`
+        ${data.statuses[i].created_at}
+        ${data.statuses[i].text}
+        `);
+        }
+     });
+}
+function songGrab(){
+    spotify.search({ type: 'track', query: title, limit: 1}, function(err, data) {
+        if (err) {
+          return console.log('Error occurred: ' + err);
+        }
+       var artists = "";
+       for(i = 0; i < data.tracks.items[0].artists.length; i++){
+          artists += data.tracks.items[0].artists[i].name + ", ";
+       }
+    //   console.log(artists);
+    //   console.log(data.tracks.items[0].name);
+    //   console.log(data.tracks.items[0].external_urls.spotify);
+    //   console.log(data.tracks.items[0].album.name);
+    console.log(`
+       Artist(s): ${artists}
+       Title: ${data.tracks.items[0].name}
+       Link: ${data.tracks.items[0].external_urls.spotify}
+       Album: ${data.tracks.items[0].album.name}
+    `)
+      });
+}
+function movieGrab() {
     var queryUrl;
     var mrNobody = "";
     if (title) {
@@ -53,6 +80,13 @@ if (process.argv[2] === "my-tweets") {
 
         }
     });
+}
+if (process.argv[2] === "my-tweets") {
+    tweetGrab();
+} else if (process.argv[2] === "spotify-this-song") {
+    songGrab();
+} else if (process.argv[2] === "movie-this") {
+    movieGrab();
 } else if (process.argv[2] === "do-what-it-says") {
     console.log("do what it says");
 } else {
